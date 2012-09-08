@@ -6,18 +6,20 @@
 #include <vector>
 
 #define PUSH_LOG_STACK Log::instance().push( __FUNCTION__ );
-#define POP_LOG_STACK Log::instance().pop();
+#define POP_LOG_STACK  Log::instance().pop();
 
 class Log {
-	private:
+	public:
 		static const enum Type {
+			FATAL,
 			ERROR,
+			WARN,
 			INFO,
 			DEBUG
 		};
-
-		bool m_initialised;
+	private:
 		Type m_threshold;
+		bool m_initialised;
 		std::string m_fileName;
 		std::vector<std::string> m_stack;
 		std::ofstream m_stream;
@@ -25,6 +27,9 @@ class Log {
 		Log();
 		Log(const Log&);
 		~Log();
+
+		void write( const std::string& message );
+		void write( const char* message );
 
 		bool log( const Type type, const std::string& message );
 	public:
@@ -45,7 +50,7 @@ class Log {
 		std::string peek();
 		bool push(const std::string& input);
 		bool push(const char* input);
-		void pop();
+		bool pop();
 };
 
 #endif

@@ -3,13 +3,19 @@
 #include <iostream>
 
 Log::Log()
-	: m_threshold( INFO ), m_fileName(), m_stack(), m_stream() {
+	: m_threshold( INFO ),
+	  m_fileName(),
+	  m_stack(),
+	  m_stream() {
 }
 
 Log::Log(const Log&) {
 }
 
 Log::~Log() {
+	if( m_initialised ) {
+		m_stream.close();
+	}
 }
 
 Log& Log::instance() {
@@ -18,28 +24,43 @@ Log& Log::instance() {
 }
 
 bool Log::initialise( const std::string& fileName ) {
-	if(!m_initialised) {
+	if( !m_initialised ) {
+		m_fileName = fileName;
 		m_stream.open( fileName.c_str(), std::ios_base::app | std::ios_base::out );
 		m_initialised = true;
+		return true;
 	}
-	return m_initialised;
+	return false;
 }
 
 bool Log::initialise( const char* fileName ) {
 	return initialise( std::string( fileName ) );
 }
 
+void Log::write( const std::string& message ) {
+	std::cout << message << std::endl;
+	m_stream  << message << std::endl;
+}
+
+void Log::write( const char* message ) {
+	write( std::string( message ) );
+}
+
 bool Log::log( const Type type, const std::string& message ) {
-	if(type <= m_threshold) {
-		std::string temp( "[ TIME ] " );
+	if( type <= m_threshold ) {
+		std::string prefix( "[ TIME ] " );
+		prefix.append(m_stack.size(), ' ');
 
-		for(size_t i = 0; i < m_stack.size(); ++i ) {
-			temp += "- ";
+		write( prefix + message );
+
+		//If it's an error, dump the stack.
+		if( type <= ERROR ) {
+			write( "====== Stack Trace ======" );
+			for( std::vector<std::string>::reverse_iterator i = m_stack.rbegin(); i != m_stack.rend(); ++i) {
+				write( *i );
+			}
+			write( "=========================" );
 		}
-
-		temp += message;
-		std::cout << temp << std::endl;
-		m_stream << temp << std::endl;
 		return true;
 	}
 	return false;
@@ -75,7 +96,7 @@ std::string Log::peek() {
 
 bool Log::push( const std::string& input ) {
 	if( !input.empty() ) {
-		info( input + " BEGIN" );
+		info( "[BEGIN] " + input );
 		m_stack.push_back( input );
 		return true;
 	}
@@ -86,8 +107,12 @@ bool Log::push( const char* input ) {
 	return push( std::string( input ) );
 }
 
-void Log::pop() {
-	std::string temp( peek() );
-	m_stack.pop_back();
-	info( temp + " END" );
+bool Log::pop() {
+	if( !m_stack.empty() ) {
+		std::string temp( peek() );
+		m_stack.pop_back();
+		info( "[END] " + temp );
+		return true;
+	}
+	return false;
 }
