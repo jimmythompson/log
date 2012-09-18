@@ -9,13 +9,15 @@
  * @def PUSH_LOG_STACK
  * @brief Pushes the logging stack with the function name that called it
  */
-#define PUSH_LOG_STACK Log::instance().push( __FUNCTION__ );
+#define PUSH_LOG_STACK \
+	Log::push( __FUNCTION__ );
 
 /**
  * @def POP_LOG_STACK
  * @brief Pops the logging stack
  */
-#define POP_LOG_STACK  Log::instance().pop();
+#define POP_LOG_STACK \
+	Log::pop();
 
 /**
  * @class Log
@@ -50,37 +52,40 @@ class Log {
 		Log(const Log&);
 		~Log();
 
+		static Log& get();
+
 		void write( const std::string& message );
 		void write( const char* message );
-
 		bool log( const Type type, const std::string& message );
 
+		Log& operator=(const Log&);
+
 	public:
-		static Log& instance();
+		static const char* typeToString(Type type);
 
-		bool initialise( const std::string& fileName );
-		bool initialise( const char* fileName );
+		static bool initialise( const std::string& fileName );
+		static bool initialise( const char* fileName );
 
-		bool fatal( const std::string& message );
-		bool fatal( const char* message );
+		static bool fatal( const std::string& message );
+		static bool fatal( const char* message );
 
-		bool error( const std::string& message );
-		bool error( const char* message );
+		static bool error( const std::string& message );
+		static bool error( const char* message );
 
-		bool warn( const std::string& message );
-		bool warn( const char* message );
+		static bool warn( const std::string& message );
+		static bool warn( const char* message );
 
-		bool info( const std::string& message );
-		bool info( const char* message );
+		static bool info( const std::string& message );
+		static bool info( const char* message );
 		
-		bool debug( const std::string& message );
-		bool debug( const char* message );
+		static bool debug( const std::string& message );
+		static bool debug( const char* message );
 
 		//Prefix to string
-		std::string peek();
-		bool push(const std::string& input);
-		bool push(const char* input);
-		std::string pop();
+		static std::string peek();
+		static bool push(const std::string& input);
+		static bool push(const char* input);
+		static std::string pop();
 };
 
 #endif

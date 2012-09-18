@@ -20,6 +20,14 @@ Log::Log(const Log&) {
 }
 
 /**
+ * @brief Copy operator
+ * @details Kept private in order to preserve singleton
+ */
+Log& Log::operator=(const Log&) {
+	return *this;
+}
+
+/**
  * @brief Destructor
  * @details Logs the shut down then closes the file stream
  */
@@ -33,9 +41,33 @@ Log::~Log() {
 /**
  * @brief Get the singleton instance
  */
-Log& Log::instance() {
+Log& Log::get() {
 	static Log log;
 	return log;
+}
+
+/**
+ * @brief Gets the name of the log category from the enum value
+ *
+ * @param The enum value of the category
+ * @return The name of the category; returns the word UNKNOWN if not valid.
+ */
+const char* Log::typeToString(Type type) {
+	switch(type) {
+	case FATAL:
+		return "FATAL";
+	case ERROR:
+		return "ERROR";
+	case WARN:
+		return "WARN";
+	case INFO:
+		return "INFO";
+	case DEBUG:
+		return "DEBUG";
+	default:
+		break;
+	}
+	return "UNKNOWN";
 }
 
 /**
@@ -45,10 +77,12 @@ Log& Log::instance() {
  * @return True if the file was successfully initialised; false if already initialised
  */
 bool Log::initialise( const std::string& fileName ) {
-	if( !m_initialised ) {
-		m_fileName = fileName;
-		m_stream.open( fileName.c_str(), std::ios_base::app | std::ios_base::out );
-		m_initialised = true;
+	Log& log = Log::get();
+
+	if( !log.m_initialised ) {
+		log.m_fileName = fileName;
+		log.m_stream.open( fileName.c_str(), std::ios_base::app | std::ios_base::out );
+		log.m_initialised = true;
 		info( "Log initialised" );
 		return true;
 	}
@@ -96,9 +130,9 @@ bool Log::log( const Type type, const std::string& message ) {
 		std::string prefix( "[ TIME ] " );
 		//prefix.append(m_stack.size(), ' ');
 
-		write( prefix + message );
+		write( prefix + std::string( typeToString(type) ) + "	" + message );
 
-		//If it's an error (or worse), dump the stack.
+		/* If it's an error (or worse), dump the stack.
 		if( type <= ERROR ) {
 			write( "====== Stack Trace ======" );
 			for( std::vector<std::string>::reverse_iterator i = m_stack.rbegin(); i != m_stack.rend(); ++i) {
@@ -106,6 +140,7 @@ bool Log::log( const Type type, const std::string& message ) {
 			}
 			write( "=========================" );
 		}
+		*/
 		return true;
 	}
 	return false;
@@ -118,7 +153,7 @@ bool Log::log( const Type type, const std::string& message ) {
  * @return True if the log was successful
  */
 bool Log::fatal( const std::string& message ) {
-	return log( FATAL, message );
+	return Log::get().log( FATAL, message );
 }
 
 /**
@@ -138,7 +173,7 @@ bool Log::fatal( const char* message ) {
  * @return True if the log was successful
  */
 bool Log::error( const std::string& message ) {
-	return log( ERROR, message );
+	return Log::get().log( ERROR, message );
 }
 
 /**
@@ -158,7 +193,7 @@ bool Log::error( const char* message ) {
  * @return True if the log was successful
  */
 bool Log::warn( const std::string& message ) {
-	return log( WARN, message );
+	return Log::get().log( WARN, message );
 }
 
 /**
@@ -178,7 +213,7 @@ bool Log::warn( const char* message ) {
  * @return True if the log was successful
  */
 bool Log::info( const std::string& message ) {
-	return log( INFO, message );
+	return Log::get().log( INFO, message );
 }
 
 /**
@@ -198,7 +233,7 @@ bool Log::info( const char* message ) {
  * @return True if the log was successful
  */
 bool Log::debug( const std::string& message ) {
-	return log( DEBUG, message );
+	return Log::get().log( DEBUG, message );
 }
 
 /**
@@ -217,7 +252,7 @@ bool Log::debug( const char* message ) {
  * @return The top element of the function stack
  */
 std::string Log::peek() {
-	return m_stack.back();
+	return Log::get().m_stack.back();
 };
 
 /**
@@ -228,8 +263,8 @@ std::string Log::peek() {
  */
 bool Log::push( const std::string& input ) {
 	if( !input.empty() ) {
-		info( "BEGIN - " + input );
-		m_stack.push_back( input );
+		info( input + " - BEGIN" );
+		Log::get().m_stack.push_back( input );
 		return true;
 	}
 	return false;
@@ -251,10 +286,11 @@ bool Log::push( const char* input ) {
  * @return The message just popped off the stack
  */
 std::string Log::pop() {
-	if( !m_stack.empty() ) {
-		std::string temp( peek() );
-		m_stack.pop_back();
-		info( "END - " + temp );
+	Log& log = Log::get();
+	if( !log.m_stack.empty() ) {
+		std::string temp( log.peek() );
+		log.m_stack.pop_back();
+		info( temp + " - END" );
 		return temp;
 	}
 	return std::string();
