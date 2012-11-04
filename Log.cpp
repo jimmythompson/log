@@ -90,16 +90,6 @@ bool Log::initialise( const std::string& fileName ) {
 }
 
 /**
- * @brief Initialises the file stream
- *
- * @param fileName The location of the file to create/append to
- * @return True if the file was successfully initialised; false if already initialised
- */
-bool Log::initialise( const char* fileName ) {
-	return initialise( std::string( fileName ) );
-}
-
-/**
  * @brief Writes the specified message to the console and the log file
  *
  * @param message The message to write
@@ -107,15 +97,6 @@ bool Log::initialise( const char* fileName ) {
 void Log::write( const std::string& message ) {
 	std::cout << message << std::endl;
 	m_stream  << message << std::endl;
-}
-
-/**
- * @brief Writes the specified message to the console and the log file
- *
- * @param message The message to write
- */
-void Log::write( const char* message ) {
-	write( std::string( message ) );
 }
 
 /**
@@ -127,20 +108,12 @@ void Log::write( const char* message ) {
  */
 bool Log::log( const Type type, const std::string& message ) {
 	if( type <= m_threshold ) {
-		std::string prefix( "[ TIME ] " );
-		//prefix.append(m_stack.size(), ' ');
+		char buffer[21];
+		time_t timestamp;
+		time( &timestamp );
+		strftime(buffer, 21, "[%X %x] ", localtime( &timestamp ));
 
-		write( prefix + std::string( typeToString(type) ) + "	" + message );
-
-		/* If it's an error (or worse), dump the stack.
-		if( type <= ERROR ) {
-			write( "====== Stack Trace ======" );
-			for( std::vector<std::string>::reverse_iterator i = m_stack.rbegin(); i != m_stack.rend(); ++i) {
-				write( *i );
-			}
-			write( "=========================" );
-		}
-		*/
+		write( std::string( buffer ) + std::string( typeToString(type) ) + "	" + message );
 		return true;
 	}
 	return false;
@@ -157,16 +130,6 @@ bool Log::fatal( const std::string& message ) {
 }
 
 /**
- * @brief Writes a fatal error to the log
- *
- * @param message The message to log
- * @return True if the log was successful
- */
-bool Log::fatal( const char* message ) {
-	return fatal( std::string( message ) );
-}
-
-/**
  * @brief Writes an error to the log
  *
  * @param message The message to log
@@ -174,16 +137,6 @@ bool Log::fatal( const char* message ) {
  */
 bool Log::error( const std::string& message ) {
 	return Log::get().log( ERROR, message );
-}
-
-/**
- * @brief Writes an error to the log
- *
- * @param message The message to log
- * @return True if the log was successful
- */
-bool Log::error( const char* message ) {
-	return error( std::string( message ) );
 }
 
 /**
@@ -197,16 +150,6 @@ bool Log::warn( const std::string& message ) {
 }
 
 /**
- * @brief Writes a warning to the log
- *
- * @param message The message to log
- * @return True if the log was successful
- */
-bool Log::warn( const char* message ) {
-	return warn( std::string( message ) );
-}
-
-/**
  * @brief Writes an information message to the log
  *
  * @param message The message to log
@@ -217,16 +160,6 @@ bool Log::info( const std::string& message ) {
 }
 
 /**
- * @brief Writes an information message to the log
- *
- * @param message The message to log
- * @return True if the log was successful
- */
-bool Log::info( const char* message ) {
-	return info( std::string( message ) );
-}
-
-/**
  * @brief Writes a debug message to the log
  *
  * @param message The message to log
@@ -234,16 +167,6 @@ bool Log::info( const char* message ) {
  */
 bool Log::debug( const std::string& message ) {
 	return Log::get().log( DEBUG, message );
-}
-
-/**
- * @brief Writes a debug message to the log
- *
- * @param message The message to log
- * @return True if the log was successful
- */
-bool Log::debug( const char* message ) {
-	return debug( std::string( message ) );
 }
 
 /**
@@ -271,16 +194,6 @@ bool Log::push( const std::string& input ) {
 }
 
 /**
- * @brief Pushes the function stack with the given message
- *
- * @param input The message to store in the stack (typically the name of the function)
- * @return True if the stack was successfully pushed
- */
-bool Log::push( const char* input ) {
-	return push( std::string( input ) );
-}
-
-/**
  * @brief Pops the top element off the stack
  *
  * @return The message just popped off the stack
@@ -294,4 +207,18 @@ std::string Log::pop() {
 		return temp;
 	}
 	return std::string();
+}
+
+/**
+ * @brief Writes the stack to the log
+ */
+void Log::printStackTrace() {
+	Log& log = Log::get();
+	std::string temp;
+
+	for( std::vector<std::string>::reverse_iterator i = log.m_stack.rbegin(); i != log.m_stack.rend(); ++i) {
+		temp += *i + "\n";
+	}
+
+	log.write( temp );
 }
