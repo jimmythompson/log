@@ -33,7 +33,7 @@ Log& Log::operator=(const Log&) {
  */
 Log::~Log() {
 	if( m_initialised ) {
-		info( "Log shutting down" );
+		Info( "Log shutting down" );
 		m_stream.close();
 	}
 }
@@ -52,7 +52,7 @@ Log& Log::get() {
  * @param The enum value of the category
  * @return The name of the category; returns the word UNKNOWN if not valid.
  */
-const char* Log::typeToString(Type type) {
+const char* Log::TypeToString(Type type) {
 	switch(type) {
 	case FATAL:
 		return "FATAL";
@@ -76,14 +76,14 @@ const char* Log::typeToString(Type type) {
  * @param fileName The location of the file to create/append to
  * @return True if the file was successfully initialised; false if already initialised
  */
-bool Log::initialise( const std::string& fileName ) {
+bool Log::Initialise( const std::string& fileName ) {
 	Log& log = Log::get();
 
 	if( !log.m_initialised ) {
 		log.m_fileName = fileName;
 		log.m_stream.open( fileName.c_str(), std::ios_base::app | std::ios_base::out );
 		log.m_initialised = true;
-		info( "Log initialised" );
+		Info( "Log initialised" );
 		return true;
 	}
 	return false;
@@ -113,29 +113,29 @@ bool Log::log( const Type type, const std::string& message ) {
 		time( &timestamp );
 		strftime(buffer, 21, "[%X %x] ", localtime( &timestamp ));
 
-		write( std::string( buffer ) + std::string( typeToString(type) ) + "	" + message );
+		write( std::string( buffer ) + std::string( TypeToString(type) ) + "	" + message );
 		return true;
 	}
 	return false;
 }
 
 /**
- * @brief Writes a fatal error to the log
+ * @brief Writes a Fatal Error to the log
  *
  * @param message The message to log
  * @return True if the log was successful
  */
-bool Log::fatal( const std::string& message ) {
+bool Log::Fatal( const std::string& message ) {
 	return Log::get().log( FATAL, message );
 }
 
 /**
- * @brief Writes an error to the log
+ * @brief Writes an Error to the log
  *
  * @param message The message to log
  * @return True if the log was successful
  */
-bool Log::error( const std::string& message ) {
+bool Log::Error( const std::string& message ) {
 	return Log::get().log( ERROR, message );
 }
 
@@ -145,7 +145,7 @@ bool Log::error( const std::string& message ) {
  * @param message The message to log
  * @return True if the log was successful
  */
-bool Log::warn( const std::string& message ) {
+bool Log::Warn( const std::string& message ) {
 	return Log::get().log( WARN, message );
 }
 
@@ -155,17 +155,17 @@ bool Log::warn( const std::string& message ) {
  * @param message The message to log
  * @return True if the log was successful
  */
-bool Log::info( const std::string& message ) {
+bool Log::Info( const std::string& message ) {
 	return Log::get().log( INFO, message );
 }
 
 /**
- * @brief Writes a debug message to the log
+ * @brief Writes a Debug message to the log
  *
  * @param message The message to log
  * @return True if the log was successful
  */
-bool Log::debug( const std::string& message ) {
+bool Log::Debug( const std::string& message ) {
 	return Log::get().log( DEBUG, message );
 }
 
@@ -174,7 +174,7 @@ bool Log::debug( const std::string& message ) {
  *
  * @return The top element of the function stack
  */
-std::string Log::peek() {
+std::string Log::Peek() {
 	return Log::get().m_stack.back();
 };
 
@@ -184,9 +184,9 @@ std::string Log::peek() {
  * @param input The message to store in the stack (typically the name of the function)
  * @return True if the stack was successfully pushed
  */
-bool Log::push( const std::string& input ) {
+bool Log::Push( const std::string& input ) {
 	if( !input.empty() ) {
-		info( input + " - BEGIN" );
+		Info( input + " - BEGIN" );
 		Log::get().m_stack.push_back( input );
 		return true;
 	}
@@ -198,12 +198,12 @@ bool Log::push( const std::string& input ) {
  *
  * @return The message just popped off the stack
  */
-std::string Log::pop() {
+std::string Log::Pop() {
 	Log& log = Log::get();
 	if( !log.m_stack.empty() ) {
-		std::string temp( log.peek() );
+		std::string temp( log.Peek() );
 		log.m_stack.pop_back();
-		info( temp + " - END" );
+		Info( temp + " - END" );
 		return temp;
 	}
 	return std::string();
@@ -212,7 +212,7 @@ std::string Log::pop() {
 /**
  * @brief Writes the stack to the log
  */
-void Log::printStackTrace() {
+void Log::PrintStackTrace() {
 	Log& log = Log::get();
 	std::string temp;
 

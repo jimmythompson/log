@@ -10,26 +10,26 @@
  * @brief Pushes the logging stack with the function name that called it
  */
 #define PUSH_LOG_STACK \
-	Log::push( __FUNCTION__ );
+	Log::Push( __FUNCTION__ );
 
 /**
  * @def POP_LOG_STACK
  * @brief Pops the logging stack
  */
 #define POP_LOG_STACK \
-	Log::pop();
+	Log::Pop();
 
 /**
  * @class Log
  * @brief Basic logging class
  * @author Jimmy Thompson
  *
- * @version $Revision: 1.0 $
+ * @version $Revision: 1.1 $
  * @date $Date: 2012/09/08 - 14:25:00 $
  * 
- * @details Logging class to deal with basic string messages and
- * @details macro-based stack tracing. Something quick I made to
- * @details handle logging in my own programs; made to be basic.
+ * @details Logging class to deal with basic string messages and macro-based
+ * @details stack tracing. Something quick I made to handle logging in my own
+ * @details programs; made to be basic.
  */
 class Log {
 	public:
@@ -60,21 +60,20 @@ class Log {
 		Log& operator=(const Log&);
 
 	public:
-		static const char* typeToString(Type type);
+		static const char* TypeToString(Type type);
 
-		static bool initialise( const std::string& fileName );
+		static bool Initialise( const std::string& fileName );
 
-		static bool fatal( const std::string& message );
-		static bool error( const std::string& message );
-		static bool warn( const std::string& message );
-		static bool info( const std::string& message );
-		static bool debug( const std::string& message );
+		static bool Fatal( const std::string& message );
+		static bool Error( const std::string& message );
+		static bool Warn( const std::string& message );
+		static bool Info( const std::string& message );
+		static bool Debug( const std::string& message );
 
-		//Prefix to string
-		static std::string peek();
-		static bool push(const std::string& input);
-		static std::string pop();
-		static void printStackTrace();
+		static std::string Peek();
+		static bool Push(const std::string& input);
+		static std::string Pop();
+		static void PrintStackTrace();
 };
 
 #endif
