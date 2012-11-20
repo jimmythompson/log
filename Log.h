@@ -63,7 +63,9 @@ class Log {
 		static const char* TypeToString(Type type);
 
 		static bool Initialise( const std::string& fileName );
+		static bool Finalise();
 
+		static void SetThreshold( Type type );
 		static bool Fatal( const std::string& message );
 		static bool Error( const std::string& message );
 		static bool Warn( const std::string& message );

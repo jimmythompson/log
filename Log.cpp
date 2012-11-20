@@ -32,10 +32,7 @@ Log& Log::operator=(const Log&) {
  * @details Logs the shut down then closes the file stream
  */
 Log::~Log() {
-	if( m_initialised ) {
-		Info( "Log shutting down" );
-		m_stream.close();
-	}
+	Finalise();
 }
 
 /**
@@ -83,7 +80,23 @@ bool Log::Initialise( const std::string& fileName ) {
 		log.m_fileName = fileName;
 		log.m_stream.open( fileName.c_str(), std::ios_base::app | std::ios_base::out );
 		log.m_initialised = true;
-		Info( "Log initialised" );
+		Info( "LOG INITIALISED" );
+		return true;
+	}
+	return false;
+}
+
+/**
+ * @brief Finalises the file stream
+ *
+ * @return True if the file was successfully finalised; false if not initialised
+ */
+bool Log::Finalise() {
+	Log& log = Log::get();
+
+	if( log.m_initialised ) {
+		Info( "LOG FINALISED" );
+		log.m_stream.close();
 		return true;
 	}
 	return false;
@@ -101,22 +114,41 @@ void Log::write( const std::string& message ) {
 
 /**
  * @brief Logs the specified message with a timestamp and category prefix
+ * @details The constant TIMESTAMP_BUFFER_SIZE was calculated as the maximum
+ * @details number of characters required for the timestamp
+ * @details "[HH:MM:SS MM/DD/YY] "
  *
  * @param type The category of message to write based on the enum Log::Type
  * @param message The message to log
  * @return True if the log was successful
  */
 bool Log::log( const Type type, const std::string& message ) {
+	static const int TIMESTAMP_BUFFER_SIZE = 21;
+	
 	if( type <= m_threshold ) {
 		char buffer[21];
 		time_t timestamp;
 		time( &timestamp );
-		strftime(buffer, 21, "[%X %x] ", localtime( &timestamp ));
+		strftime( buffer, sizeof( buffer ), "[%X %x] ", localtime(&timestamp) );
 
 		write( std::string( buffer ) + std::string( TypeToString(type) ) + "	" + message );
 		return true;
 	}
 	return false;
+}
+
+
+/**
+ * @brief Sets the debugging threshold
+ * @details This is the debugging threshold to use when reporting bugs, useful
+ * @details for having lots of debugging information that sometimes you just
+ * @details want to turn off.
+ *
+ * @param type The given debugging threshold to use
+ */
+void Log::SetThreshold( Type type ) {
+	Log& log = Log::get();
+	log.m_threshold = type;
 }
 
 /**
