@@ -20,14 +20,6 @@ Log::Log(const Log&) {
 }
 
 /**
- * @brief Copy operator
- * @details Kept private in order to preserve singleton
- */
-Log& Log::operator=(const Log&) {
-	return *this;
-}
-
-/**
  * @brief Destructor
  * @details Logs the shut down then closes the file stream
  */
@@ -41,65 +33,6 @@ Log::~Log() {
 Log& Log::get() {
 	static Log log;
 	return log;
-}
-
-/**
- * @brief Gets the name of the log category from the enum value
- *
- * @param The enum value of the category
- * @return The name of the category; returns the word UNKNOWN if not valid.
- */
-const char* Log::TypeToString(Type type) {
-	switch(type) {
-	case FATAL:
-		return "FATAL";
-	case ERROR:
-		return "ERROR";
-	case WARN:
-		return "WARN";
-	case INFO:
-		return "INFO";
-	case DEBUG:
-		return "DEBUG";
-	default:
-		break;
-	}
-	return "UNKNOWN";
-}
-
-/**
- * @brief Initialises the file stream
- *
- * @param fileName The location of the file to create/append to
- * @return True if the file was successfully initialised; false if already initialised
- */
-bool Log::Initialise( const std::string& fileName ) {
-	Log& log = Log::get();
-
-	if( !log.m_initialised ) {
-		log.m_fileName = fileName;
-		log.m_stream.open( fileName.c_str(), std::ios_base::app | std::ios_base::out );
-		log.m_initialised = true;
-		Info( "LOG INITIALISED" );
-		return true;
-	}
-	return false;
-}
-
-/**
- * @brief Finalises the file stream
- *
- * @return True if the file was successfully finalised; false if not initialised
- */
-bool Log::Finalise() {
-	Log& log = Log::get();
-
-	if( log.m_initialised ) {
-		Info( "LOG FINALISED" );
-		log.m_stream.close();
-		return true;
-	}
-	return false;
 }
 
 /**
@@ -137,6 +70,65 @@ bool Log::log( const Type type, const std::string& message ) {
 	return false;
 }
 
+
+/**
+ * @brief Initialises the file stream
+ *
+ * @param fileName The location of the file to create/append to
+ * @return True if the file was successfully initialised; false if already initialised
+ */
+bool Log::Initialise( const std::string& fileName ) {
+	Log& log = Log::get();
+
+	if( !log.m_initialised ) {
+		log.m_fileName = fileName;
+		log.m_stream.open( fileName.c_str(), std::ios_base::app | std::ios_base::out );
+		log.m_initialised = true;
+		Info( "LOG INITIALISED" );
+		return true;
+	}
+	return false;
+}
+
+/**
+ * @brief Finalises the file stream
+ *
+ * @return True if the file was successfully finalised; false if not initialised
+ */
+bool Log::Finalise() {
+	Log& log = Log::get();
+
+	if( log.m_initialised ) {
+		Info( "LOG FINALISED" );
+		log.m_stream.close();
+		return true;
+	}
+	return false;
+}
+
+/**
+ * @brief Gets the name of the log category from the enum value
+ *
+ * @param The enum value of the category
+ * @return The name of the category; returns the word UNKNOWN if not valid.
+ */
+const char* Log::TypeToString(Type type) {
+	switch(type) {
+	case FATAL:
+		return "FATAL";
+	case ERROR:
+		return "ERROR";
+	case WARN:
+		return "WARN";
+	case INFO:
+		return "INFO";
+	case DEBUG:
+		return "DEBUG";
+	default:
+		break;
+	}
+	return "UNKNOWN";
+}
 
 /**
  * @brief Sets the debugging threshold
@@ -218,7 +210,7 @@ std::string Log::Peek() {
  */
 bool Log::Push( const std::string& input ) {
 	if( !input.empty() ) {
-		Info( input + " - BEGIN" );
+		Debug( input + " BEGIN" );
 		Log::get().m_stack.push_back( input );
 		return true;
 	}
@@ -235,7 +227,7 @@ std::string Log::Pop() {
 	if( !log.m_stack.empty() ) {
 		std::string temp( log.Peek() );
 		log.m_stack.pop_back();
-		Info( temp + " - END" );
+		Debug( temp + " END" );
 		return temp;
 	}
 	return std::string();
@@ -253,4 +245,11 @@ void Log::PrintStackTrace() {
 	}
 
 	log.write( temp );
+}
+/**
+ * @brief Copy operator
+ * @details Kept private in order to preserve singleton
+ */
+Log& Log::operator=(const Log&) {
+	return *this;
 }
