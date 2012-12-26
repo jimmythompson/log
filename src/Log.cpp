@@ -1,4 +1,4 @@
-#include "Log.h"
+#include "../include/Log.h"
 #include <ctime>
 #include <iostream>
 
@@ -6,7 +6,7 @@
  * @brief Constructor
  */
 Log::Log()
-	: m_threshold( INFO ),
+	: m_threshold( LOG_TYPE_INFO ),
 	  m_fileName(),
 	  m_stack(),
 	  m_stream() {
@@ -38,12 +38,21 @@ Log& Log::get() {
 /**
  * @brief Writes the specified message to the console and the log file
  *
- * @param message The message to write
+ * @param format The format of the message
+ * @param ... Variable arguments
  */
-void Log::write( const std::string& message ) {
-	std::cout << message << std::endl;
-	m_stream  << message << std::endl;
+void Log::write( const char* format, ... ) {
+	char buffer[512];
+
+	va_list varArgs;
+	va_start( varArgs, format );
+	vsnprintf( buffer, sizeof(buffer), format, varArgs);
+	va_end( varArgs );
+
+	std::cout << buffer << std::endl;
+	m_stream  << buffer << std::endl;
 }
+
 
 /**
  * @brief Logs the specified message with a timestamp and category prefix
@@ -55,21 +64,37 @@ void Log::write( const std::string& message ) {
  * @param message The message to log
  * @return True if the log was successful
  */
-bool Log::log( const Type type, const std::string& message ) {
+bool Log::log( const Type& type, const std::string& message ) {
 	static const int TIMESTAMP_BUFFER_SIZE = 21;
 	
 	if( type <= m_threshold ) {
-		char buffer[21];
+		char buffer[TIMESTAMP_BUFFER_SIZE];
 		time_t timestamp;
 		time( &timestamp );
-		strftime( buffer, sizeof( buffer ), "[%X %x] ", localtime(&timestamp) );
+		strftime( buffer, sizeof( buffer ), "%X %x", localtime( &timestamp ) );
 
-		write( std::string( buffer ) + std::string( TypeToString(type) ) + "	" + message );
+		write( "[%s] %s - %s", buffer, TypeToString( type ), message.c_str() );
 		return true;
 	}
 	return false;
 }
 
+/**
+ * @brief Logs the specified message with a timestamp and category prefix
+ * @details The constant TIMESTAMP_BUFFER_SIZE was calculated as the maximum
+ * @details number of characters required for the timestamp
+ * @details "[HH:MM:SS MM/DD/YY] "
+ *
+ * @param type The category of message to write based on the enum Log::Type
+ * @param format The format of the message
+ * @param ... Variable arguments
+ * @return True if the log was successful
+ */
+bool Log::log( const Type& type, const char* format, const va_list& varArgs) {
+	char buffer[512];
+	vsnprintf( buffer, sizeof(buffer), format, varArgs);
+	return log( type, buffer );
+}
 
 /**
  * @brief Initialises the file stream
@@ -112,22 +137,22 @@ bool Log::Finalise() {
  * @param The enum value of the category
  * @return The name of the category; returns the word UNKNOWN if not valid.
  */
-const char* Log::TypeToString(Type type) {
-	switch(type) {
-	case FATAL:
+const char* Log::TypeToString( const Type& type ) {
+	switch( type ) {
+	case LOG_TYPE_FATAL:
 		return "FATAL";
-	case ERROR:
+	case LOG_TYPE_ERROR:
 		return "ERROR";
-	case WARN:
-		return "WARN";
-	case INFO:
-		return "INFO";
-	case DEBUG:
+	case LOG_TYPE_WARN:
+		return "WARN ";
+	case LOG_TYPE_INFO:
+		return "INFO ";
+	case LOG_TYPE_DEBUG:
 		return "DEBUG";
 	default:
 		break;
 	}
-	return "UNKNOWN";
+	return "UNKWN";
 }
 
 /**
@@ -138,7 +163,7 @@ const char* Log::TypeToString(Type type) {
  *
  * @param type The given debugging threshold to use
  */
-void Log::SetThreshold( Type type ) {
+void Log::SetThreshold( const Type& type ) {
 	Log& log = Log::get();
 	log.m_threshold = type;
 }
@@ -150,7 +175,22 @@ void Log::SetThreshold( Type type ) {
  * @return True if the log was successful
  */
 bool Log::Fatal( const std::string& message ) {
-	return Log::get().log( FATAL, message );
+	return Log::get().log( LOG_TYPE_FATAL, message );
+}
+
+/**
+ * @brief Writes a Fatal Error to the log
+ *
+ * @param format The format of the message
+ * @param ... Variable arguments
+ * @return True if the log was successful
+ */
+bool Log::Fatal( const char* format, ... ) {
+	va_list varArgs;
+	va_start( varArgs, format );
+	bool success = Log::get().log( LOG_TYPE_FATAL, format, varArgs);
+	va_end( varArgs );
+	return success;
 }
 
 /**
@@ -160,7 +200,22 @@ bool Log::Fatal( const std::string& message ) {
  * @return True if the log was successful
  */
 bool Log::Error( const std::string& message ) {
-	return Log::get().log( ERROR, message );
+	return Log::get().log( LOG_TYPE_ERROR, message );
+}
+
+/**
+ * @brief Writes an Error to the log
+ *
+ * @param format The format of the message
+ * @param ... Variable arguments
+ * @return True if the log was successful
+ */
+bool Log::Error( const char* format, ... ) {
+	va_list varArgs;
+	va_start( varArgs, format );
+	bool success = Log::get().log( LOG_TYPE_ERROR, format, varArgs);
+	va_end( varArgs );
+	return success;
 }
 
 /**
@@ -170,7 +225,22 @@ bool Log::Error( const std::string& message ) {
  * @return True if the log was successful
  */
 bool Log::Warn( const std::string& message ) {
-	return Log::get().log( WARN, message );
+	return Log::get().log( LOG_TYPE_WARN, message );
+}
+
+/**
+ * @brief Writes a warning to the log
+ *
+ * @param format The format of the message
+ * @param ... Variable arguments
+ * @return True if the log was successful
+ */
+bool Log::Warn( const char* format, ... ) {
+	va_list varArgs;
+	va_start( varArgs, format );
+	bool success = Log::get().log( LOG_TYPE_WARN, format, varArgs);
+	va_end( varArgs );
+	return success;
 }
 
 /**
@@ -180,7 +250,22 @@ bool Log::Warn( const std::string& message ) {
  * @return True if the log was successful
  */
 bool Log::Info( const std::string& message ) {
-	return Log::get().log( INFO, message );
+	return Log::get().log( LOG_TYPE_INFO, message );
+}
+
+/**
+ * @brief Writes an information message to the log
+ *
+ * @param format The format of the message
+ * @param ... Variable arguments
+ * @return True if the log was successful
+ */
+bool Log::Info( const char* format, ... ) {
+	va_list varArgs;
+	va_start( varArgs, format );
+	bool success = Log::get().log( LOG_TYPE_INFO, format, varArgs);
+	va_end( varArgs );
+	return success;
 }
 
 /**
@@ -190,7 +275,22 @@ bool Log::Info( const std::string& message ) {
  * @return True if the log was successful
  */
 bool Log::Debug( const std::string& message ) {
-	return Log::get().log( DEBUG, message );
+	return Log::get().log( LOG_TYPE_DEBUG, message );
+}
+
+/**
+ * @brief Writes an Debug message to the log
+ *
+ * @param format The format of the message
+ * @param ... Variable arguments
+ * @return True if the log was successful
+ */
+bool Log::Debug( const char* format, ... ) {
+	va_list varArgs;
+	va_start( varArgs, format );
+	bool success = Log::get().log( LOG_TYPE_DEBUG, format, varArgs);
+	va_end( varArgs );
+	return success;
 }
 
 /**
@@ -238,13 +338,14 @@ std::string Log::Pop() {
  */
 void Log::PrintStackTrace() {
 	Log& log = Log::get();
-	std::string temp;
+	std::string temp = "---Stack Trace---\n";
 
 	for( std::vector<std::string>::reverse_iterator i = log.m_stack.rbegin(); i != log.m_stack.rend(); ++i) {
-		temp += *i + "\n";
+		temp += "| " + *i + "\n";
 	}
 
-	log.write( temp );
+	temp += "-----------------";
+	log.write( temp.c_str() );
 }
 /**
  * @brief Copy operator
