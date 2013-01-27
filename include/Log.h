@@ -12,12 +12,12 @@
  * @brief Pushes the logging stack with the function name that called it
  */
 #define PUSH_LOG_STACK \
-	StackLogger stackLoggerTempObject = StackLogger( __FUNCTION__ );
+	const StackLogger stackLoggerTempObject = StackLogger( __FUNCTION__ );
 
 /**
  * @class Log
  * @brief Basic logging class
- * @author Jimmy Thompson
+ * @author Jimmy Thompson (http://jimmythompson.co.uk)
  * @author wuqiong
  *
  * @version $Revision: 1.1 $
@@ -25,77 +25,77 @@
  * 
  * @details Logging class to deal with basic string messages and macro-based
  * @details stack tracing. Something quick I made to handle logging in my own
- * @details programs; made to be basic.
+ * @details programs.
  */
 class Log {
-	public:
-		static const enum Type {
-			LOG_TYPE_FATAL,
-			LOG_TYPE_ERROR,
-			LOG_TYPE_WARN,
-			LOG_TYPE_INFO,
-			LOG_TYPE_DEBUG
-		};
+public:
+    static const enum Type {
+        LOG_TYPE_FATAL,
+        LOG_TYPE_ERROR,
+        LOG_TYPE_WARN,
+        LOG_TYPE_INFO,
+        LOG_TYPE_DEBUG
+    };
 
-	private:
-		Type m_threshold;
-		bool m_initialised;
-		std::string m_fileName;
-		std::vector<std::string> m_stack;
-		std::ofstream m_stream;
+    static const char* TypeToString(const Type& type);
 
-		Log();
-		Log(const Log&);
-		~Log();
+    static bool Initialise(const std::string& fileName);
+    static bool Finalise();
 
-		static Log& get();
+    static void SetThreshold(const Type& type);
 
-		void write(const char* format, ...);
+    static bool Fatal(const std::string& message);
+    static bool Fatal(const char* format, ...);
 
-		bool log(const Type& type, const std::string& message);
-		bool log(const Type& type, const char* format, const va_list& varArgs);
+    static bool Error(const std::string& message);
+    static bool Error(const char* format, ...);
 
-		Log& operator=(const Log&);
+    static bool Warn(const std::string& message);
+    static bool Warn(const char* format, ...);
 
-	public:
-		static const char* TypeToString(const Type& type);
+    static bool Info(const std::string& message);
+    static bool Info(const char* format, ...);
 
-		static bool Initialise(const std::string& fileName);
-		static bool Finalise();
+    static bool Debug(const std::string& message);
+    static bool Debug(const char* format, ...);
 
-		static void SetThreshold(const Type& type);
-		static bool Fatal(const std::string& message);
-		static bool Fatal(const char* format, ...);
+    static std::string Peek();
+    static bool Push(const std::string& input);
+    static std::string Pop();
+    static void PrintStackTrace();
 
-		static bool Error(const std::string& message);
-		static bool Error(const char* format, ...);
+private:
+    Type m_threshold;
+    bool m_initialised;
+    std::string m_fileName;
+    std::vector<std::string> m_stack;
+    std::ofstream m_stream;
 
-		static bool Warn(const std::string& message);
-		static bool Warn(const char* format, ...);
+    Log();
+    Log(const Log&);
+    ~Log();
 
-		static bool Info(const std::string& message);
-		static bool Info(const char* format, ...);
+    static Log& get();
 
-		static bool Debug(const std::string& message);
-		static bool Debug(const char* format, ...);
+    void write(const char* format, ...);
 
-		static std::string Peek();
-		static bool Push(const std::string& input);
-		static std::string Pop();
-		static void PrintStackTrace();
+    bool log(const Type& type, const std::string& message);
+    bool log(const Type& type, const char* format, const va_list& varArgs);
+
+    Log& operator=(const Log&);
 };
 
 struct StackLogger
 {
-	StackLogger(const std::string& input)
-	{
-		Log::Push( input );
-	}
+    StackLogger(const std::string& input)
+    {
+        Log::Push( input );
+    }
 
-	~StackLogger()
-	{
-		Log::Pop();
-	}
+    ~StackLogger()
+    {
+        Log::Pop();
+    }
 };
 
 #endif
