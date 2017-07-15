@@ -1,3 +1,7 @@
+/**
+ * \file Log.cpp
+ */
+
 #include "Log.h"
 #include <ctime>
 #include <iostream>

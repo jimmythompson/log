@@ -165,3 +165,8 @@ pip-log.txt
 *.sln
 *.vcxproj
 *.vcxproj.filters
+
+# Doxygen
+doc/*
+!doc/Doxyfile
+!doc/*.dox
