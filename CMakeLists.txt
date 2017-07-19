@@ -2,9 +2,9 @@ cmake_minimum_required(VERSION 3.5)
 
 project(Log)
 
-set(SOURCES src/Log.cpp)
-set(INCLUDE_DIRECTORIES include)
+set(SRCS src/Log.cpp)
+set(INCS include)
 
-include_directories(${INCLUDE_DIRECTORIES})
+include_directories(${INCS})
 
-add_library(${PROJECT_NAME} ${SOURCES})
+add_library(${PROJECT_NAME} ${SRCS})
