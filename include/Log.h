@@ -1,3 +1,7 @@
+/**
+ * \file Log.h
+ */
+
 #ifndef LOG_H
 #define LOG_H
 
@@ -29,7 +33,7 @@
  */
 class Log {
 public:
-    static const enum Type {
+    enum Type {
         LOG_TYPE_FATAL,
         LOG_TYPE_ERROR,
         LOG_TYPE_WARN,
@@ -80,7 +84,7 @@ private:
     void write(const char* format, ...);
 
     bool log(const Type& type, const std::string& message);
-    bool log(const Type& type, const char* format, const va_list& varArgs);
+    bool log(const Type& type, const char* format, va_list& varArgs);
 
     Log& operator=(const Log&);
 };

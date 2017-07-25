@@ -1,4 +1,8 @@
-#include "../include/Log.h"
+/**
+ * \file Log.cpp
+ */
+
+#include "Log.h"
 #include <ctime>
 #include <iostream>
 
@@ -340,7 +344,7 @@ bool Log::log( const Type& type, const std::string& message ) {
  * @param   ... Variable arguments
  * @return  True if the log was successful
  */
-bool Log::log( const Type& type, const char* format, const va_list& varArgs) {
+bool Log::log( const Type& type, const char* format, va_list& varArgs) {
 	char buffer[512];
 	vsnprintf( buffer, sizeof(buffer), format, varArgs);
 	return log( type, buffer );
